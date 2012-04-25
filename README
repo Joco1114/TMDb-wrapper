@@ -1,0 +1,36 @@
+Hi,
+
+1) This is a simple TMDb wrapper in PHP specialy made for Hungarian queries. If you want to use for other languages, 
+just search for "hu" in cource codes and replace it for you own county code.
+
+2) For proper use you need an API_KEY from themoviedb.org
+
+3) Public functions are:
+
+searchMovies($movieTitle, $lang="", $tableFormat=false, $force=false)
+  $movieTitle = title of the movie, original or your own language (depends on the tmdb database)
+  $lang = if you want to get results (if possible) the specified language, just set it to yout country code
+  $tableFormat = if you will get more than once results, you will get a simple table, just set it "true"
+  $force = if you have more than one results, you will returned with the first result (dont use with $tableFormat=true)
+
+  Sample: $movie = searchMovies("Avatar", "hu", true);
+
+getMovieInfo($movieID, $lang="")
+  $movieID = movie id from themoviedb.org
+  $lang = language of results
+
+getGenres($movieID, $lang="")
+
+getBackdrops($movieID)
+
+getPosters($movieID, $lang="")
+
+getCrew($movieID, $dep)
+
+getCasts($movieID)
+
+getReleaseDate($movieID, $lang="")
+
+getCertification($movieID, $lang="")
+
+getAllInfos($movieID,  $lang)
