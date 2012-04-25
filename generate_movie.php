@@ -42,6 +42,8 @@ if (!empty($_GET['tmdb_id']))
 	$tmdb_id = $_GET['tmdb_id'];
 	$movie = $tmdb->getAllInfos($tmdb_id, "hu");
 	if (empty($movie['tmdb_id'])) die("Hibás MOVIE adatok, vagy nem létező film! (NOT FOUND)"); else
+	
+	_d($movie);
 }
 
 ?>
