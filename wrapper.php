@@ -1,4 +1,5 @@
 <?php
+// e-mail me @ joco1114@gmail.com
 
 class TMDBv3 { // let the class begin!
 	const _API_URL_ = "http://api.themoviedb.org/3/";
