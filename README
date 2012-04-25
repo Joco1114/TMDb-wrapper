@@ -1,7 +1,6 @@
 Hi,
 
-1) This is a simple TMDb wrapper in PHP specialy made for Hungarian queries. If you want to use for other languages, 
-just search for "hu" in cource codes and replace it for you own county code.
+1) This is a simple TMDb wrapper in PHP specialy made for Hungarian queries. If you want to use for other languages, just search for "hu" in cource codes and replace it for you own county code.
 
 2) For proper use you need an API_KEY from themoviedb.org
 
