@@ -148,8 +148,7 @@ class TMDBv3 { // let the class begin!
 		return $ret;
 	}
 
-	public function getCrew($movieID, $dep)
-	{
+	public function getCrew($movieID, $dep) {
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/casts");
 		$dep = strtolower($dep);
@@ -162,8 +161,7 @@ class TMDBv3 { // let the class begin!
 		return substr($ret,0,-2);
 	}
 
-	public function getCasts($movieID)
-	{
+	public function getCasts($movieID) {
 		if (empty($movieID)) return;
 
 		function cmpcast($a, $b)
@@ -190,8 +188,7 @@ class TMDBv3 { // let the class begin!
 		return $temp;
 	}
 
-	public function getReleaseDate($movieID, $lang="")
-	{
+	public function getReleaseDate($movieID, $lang="") {
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/releases");
 		$lang = strtoupper($lang);
@@ -203,8 +200,7 @@ class TMDBv3 { // let the class begin!
 			return ($temp['countries'][$ret]['release_date']);
 	}
 
-	public function getCertification($movieID, $lang="")
-	{
+	public function getCertification($movieID, $lang="") {
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/releases");
 		$lang = strtoupper($lang);
