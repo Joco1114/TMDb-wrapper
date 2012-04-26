@@ -1,5 +1,4 @@
 <?php
-// e-mail me @ joco1114@gmail.com
 
 class TMDBv3 { // let the class begin!
 	const _API_URL_ = "http://api.themoviedb.org/3/";
@@ -100,8 +99,8 @@ class TMDBv3 { // let the class begin!
 	}
 
 	public function getGenres($movieID, $lang="") {
-		$genres_en = array("Action", "Animation", "Drama", "Science Fiction", "Adventure", "Comedy", "Crime", "Disaster", "Documentary", "Family", "Thriller", "Fantasy", "History", "Horror", "Musical", "Music", "Mystery", "War", "Western", "Foreign");
-		$genres_hu = array("Akció", "Animáció", "Dráma", "Sci-Fi", "Kaland", "Vígjáték", "Bűnügyi", "Katasztrófa", "Dokumentum", "Családi", "Thriller", "Fantasy", "Történelmi", "Horror", "Musical", "Zenés", "Misztikus", "Háborús", "Western", "Külföldi");
+		$genres_en = array("Action", "Animation", "Drama", "Science Fiction", "Adventure", "Comedy", "Crime", "Disaster", "Documentary", "Family", "Thriller", "Fantasy", "History", "Horror", "Musical", "Music", "Mystery", "War", "Western", "Foreign", "Romance");
+		$genres_hu = array("Akció", "Animáció", "Dráma", "Sci-Fi", "Kaland", "Vígjáték", "Bűnügyi", "Katasztrófa", "Dokumentum", "Családi", "Thriller", "Fantasy", "Történelmi", "Horror", "Musical", "Zenés", "Misztikus", "Háborús", "Western", "Külföldi", "Romantikus");
 
 		if (empty($movieID)) return;
 		$temp = $this->getMovieInfo($movieID, $lang);
@@ -139,7 +138,7 @@ class TMDBv3 { // let the class begin!
 		$ret = array();
 		if (count($posters)>0)
 		foreach ($posters as &$pic) {
-			if ($pic['iso_639_1'] == $lang || $pic['iso_639_1'] == "en" || $pic['iso_639_1'] == "")
+			if (($pic['iso_639_1'] == $lang || $pic['iso_639_1'] == "en" || $pic['iso_639_1'] == "") && ($pic['height'] < 2000))
 			{
 				$ret['pic'][] = $this->getImageURL().$pic['file_path']; 
 				$ret['lang'][] = $pic['iso_639_1'];
@@ -148,7 +147,8 @@ class TMDBv3 { // let the class begin!
 		return $ret;
 	}
 
-	public function getCrew($movieID, $dep) {
+	public function getCrew($movieID, $dep)
+	{
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/casts");
 		$dep = strtolower($dep);
@@ -161,7 +161,8 @@ class TMDBv3 { // let the class begin!
 		return substr($ret,0,-2);
 	}
 
-	public function getCasts($movieID) {
+	public function getCasts($movieID)
+	{
 		if (empty($movieID)) return;
 
 		function cmpcast($a, $b)
@@ -178,17 +179,23 @@ class TMDBv3 { // let the class begin!
 			usort($casts, "cmpcast"); // sort by order field (Sherk 2)
 			foreach ($casts as &$actor) {
 				if (!empty($actor['profile_path'])) { // only with picture
-					$temp['id'][] = $actor['id'];
-					$temp['name'][] = $actor['name'];
-					$temp['char'][] = str_replace('(voice)', '(hang)', $actor['character']);
-					$temp['pic'][] = $this->getImageURL().$actor['profile_path'];
+					for ($i=0; $i<count($temp['id']); $i++)
+						if ($temp['name'][$i] == $actor['name']) $temp['char'][$i] .= " / ".str_replace('(voice)', '(hang)', $actor['character']);
+
+					if (!in_array($actor['name'], (array) $temp['name'])) {
+							$temp['id'][] = $actor['id'];
+							$temp['name'][] = $actor['name'];
+							$temp['char'][] = str_replace('(voice)', '(hang)', $actor['character']);
+							$temp['pic'][] = $this->getImageURL().$actor['profile_path'];
+						}
 				}
 			}
 		}
 		return $temp;
 	}
 
-	public function getReleaseDate($movieID, $lang="") {
+	public function getReleaseDate($movieID, $lang="")
+	{
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/releases");
 		$lang = strtoupper($lang);
@@ -200,7 +207,8 @@ class TMDBv3 { // let the class begin!
 			return ($temp['countries'][$ret]['release_date']);
 	}
 
-	public function getCertification($movieID, $lang="") {
+	public function getCertification($movieID, $lang="")
+	{
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/releases");
 		$lang = strtoupper($lang);
@@ -244,7 +252,8 @@ class TMDBv3 { // let the class begin!
 		$movie['casts'] = $this->getCasts($movieID);
 
 		$movie['posters'] = $this->getPosters($movieID, "hu");
-		if (empty($movie['posters']['pic']) && !empty($movie['imdb_datas']['poster'])) $movie['posters']['pic'][] = $movie['imdb_datas']['poster']; else $movie['posters']['pic'][] = "poster.jpg";
+		if (empty($movie['posters']['pic']) && !empty($movie['imdb_datas']['poster'])) $movie['posters']['pic'][] = $movie['imdb_datas']['poster'];
+		if (empty($movie['posters']['pic'])) $movie['posters']['pic'][] = "poster.jpg";
 
 		$movie['backdrops'] = $this->getBackdrops($movieID);
 		if (empty($movie['backdrops']['pic'])) { $movie['backdrops']['pic'][] = "backdrop.jpg"; }
