@@ -139,7 +139,7 @@ class TMDBv3 { // let the class begin!
 		$ret = array();
 		if (count($posters)>0)
 		foreach ($posters as &$pic) {
-			if ($pic['iso_639_1'] == $lang || $pic['iso_639_1'] == "en")
+			if ($pic['iso_639_1'] == $lang || $pic['iso_639_1'] == "en" || $pic['iso_639_1'] == "")
 			{
 				$ret['pic'][] = $this->getImageURL().$pic['file_path']; 
 				$ret['lang'][] = $pic['iso_639_1'];
