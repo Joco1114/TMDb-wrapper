@@ -2,7 +2,7 @@
 
 class TMDBv3 { // let the class begin!
 	const _API_URL_ = "http://api.themoviedb.org/3/";
-	const VERSION = '0.1';
+	const VERSION = '0.3';
 
 	private $_apikey;
 	private $_lang;
