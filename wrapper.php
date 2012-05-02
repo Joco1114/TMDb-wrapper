@@ -117,14 +117,14 @@ class TMDBv3 { // let the class begin!
 		if (empty($movieID)) return;
 		$temp = $this->_call("movie/" . $movieID . "/images");
 		$backdrops = $temp['backdrops'];
-
 		$ret = array();
 		if (count($backdrops)>0)
 		foreach ($backdrops as &$pic) {
-			if ($pic['height'] == 1080 && $pic['width'] == 1920)
 			{
 				$ret['pic'][] = $this->getImageURL().$pic['file_path']; 
 				$ret['lang'][] = $pic['iso_639_1'];
+				$ret['width'][] = $pic['width'];
+				$ret['height'][] = $pic['height'];
 			}
 		}
 		return $ret;
@@ -142,6 +142,8 @@ class TMDBv3 { // let the class begin!
 			{
 				$ret['pic'][] = $this->getImageURL().$pic['file_path']; 
 				$ret['lang'][] = $pic['iso_639_1'];
+				$ret['width'][] = $pic['width'];
+				$ret['height'][] = $pic['height'];
 			}
 		}
 		return $ret;
@@ -233,6 +235,7 @@ class TMDBv3 { // let the class begin!
 
 		$movie['title'] = $tmdb['title'];
 		$movie['original_title'] = $movie['imdb_datas']['original_title']; // IMDB
+		if ($movie['original_title'] == "") $movie['original_title'] = $movie['title']; // magyar filmeknél, ahol nincs angol cím
 		
 		$movie['genres'] = $this->getGenres($movieID, "hu");
 		$movie['director'] = $this->getCrew($movieID, "Director");
@@ -240,7 +243,7 @@ class TMDBv3 { // let the class begin!
 		$movie['writer'] = $this->getCrew($movieID, "Screenplay");
 		$movie['editor'] = $this->getCrew($movieID, "Editor");
 		$movie['camera'] = $this->getCrew($movieID, "Director of Photography");
-		$movie['music'] = $this->getCrew($movieID, "Sound");
+			$movie['music'] = $this->getCrew($movieID, "Sound");
 
 		$movie['score'] = number_format($movie['imdb_datas']['rating'],1); // IMDB
 		$movie['budget'] = '$'.number_format($tmdb['budget']);
@@ -258,6 +261,12 @@ class TMDBv3 { // let the class begin!
 		$movie['backdrops'] = $this->getBackdrops($movieID);
 		if (empty($movie['backdrops']['pic'])) { $movie['backdrops']['pic'][] = "backdrop.jpg"; }
 
+		$fkatInfo = getfilmkat($movie['title'], $movie['imdb_datas']['year']);
+
+		if ($movie['plot'] == "") $movie['plot'] = $fkatInfo['plot'];
+		if ($fkatInfo['genre'] != '') $movie['genres'] = $fkatInfo['genre'];
+
+		$movie['fkat_datas'] = $fkatInfo;
 		return($movie);
 	}
 
@@ -318,7 +327,7 @@ class IMDb
 		        CURLOPT_RETURNTRANSFER => true,
 		        CURLOPT_HEADER         => false,
 		        CURLOPT_FOLLOWLOCATION => true,
-		        CURLOPT_USERAGENT      => "TMDB Spider",
+		        CURLOPT_USERAGENT      => "Dune Spider",
 		        CURLOPT_CONNECTTIMEOUT => 120,
 		        CURLOPT_TIMEOUT        => 120,
 		        CURLOPT_MAXREDIRS      => 10,
@@ -338,5 +347,103 @@ class IMDb
 		return (array) $results;
 	}
 } // EOC
+
+function getfilmkatInfo($adat) {
+	if (strpos($adat, "<HTML>") === FALSE) $adat = iconv("ISO-8859-2", "UTF-8", @file_get_contents("http://filmkatalogus.hu/".$adat));
+
+    $preg = "/<H1>(.+?)<\/H1>/is";
+    preg_match($preg, $adat, $temp);
+    $title = $temp[1];
+
+
+    $preg = "/<H2>\((.+?)\)<\/H2>/is";
+    preg_match($preg, $adat, $temp);
+
+    if (strpos($temp[1],",") === FALSE) 
+    {
+    // ha nincs original title
+    	$original_title = $title;
+    	$year = $temp[1];
+    }
+    else
+    {
+    // van eredeti cím
+    	$preg = "/(.+?), (\d{4})/is";
+    	preg_match($preg, $temp[1], $a);
+
+    	$original_title = $a[1];
+    	$year = $a[2];
+    }
+
+    $preg = "/<DIV ALIGN=JUSTIFY>(.+?)<\/DIV>/is";
+    preg_match($preg, $adat, $temp);
+
+    $plot = $temp[1];
+
+    $preg = "/<B>Stílus:<\/B> (.+?)<BR>/is";
+    preg_match($preg, $adat, $temp);
+    $genre = $temp[1];
+
+    $preg = "/<B>Hossz:<\/B> (.+?) perc<BR>/is";
+    preg_match($preg, $adat, $temp);
+    $length = $temp[1];
+
+	$movie = array();
+	$movie['title'] = $title;
+	$movie['original_title'] = $original_title;
+	$movie['year'] = $year;
+	$movie['plot'] = $plot;
+	$movie['genre'] = $genre;
+	$movie['length'] = $length;
+	return($movie);
+}
+
+function getfilmkat($search, $year) {
+
+    $found = array();
+
+	if ($_GET['movie_id']) return(getfilmkatInfo($_GET['movie_id']));
+
+	$url = "http://www.filmkatalogus.hu/osszestalalat-f-".urlencode(remove_accent($search));
+
+	$page = iconv("ISO-8859-2", "UTF-8", @file_get_contents($url));
+
+	$ret = "";
+
+	if (strpos($page, "Találat(ok) filmek között")>0)
+	{
+		$start = strpos($page, "<TR CLASS='tabla2'><TD>");
+		$page = substr($page, $start);
+
+		$end  = strpos($page, "</TABLE>");
+		$page = substr($page, 0, $end);
+
+		$page = "<TABLE>".$page."</TABLE>";
+
+		$preg = "/<TR.+?><TD>(.+?)<\/TD>.+?<\/TR>/is";
+		preg_match_all($preg, $page, $lines);
+		$lines = $lines[1];
+
+    	for ($i=0; $i<count($lines); $i++)
+    	{
+		$preg = "/<A HREF='\/(.+?)' TITLE='(.+?)'\>(.+?)<\/A\> \((\d{4})(\)|, (.+?)\))/is";
+		preg_match($preg, $lines[$i], $found);
+
+		if (!isset($found[6])) $found[6]="";
+
+		if ($found[2]!="") {
+			$huTitle = $found[2];
+			$altTitle = $found[6];
+			$relYear = $found[4];
+			$fkatID = $found[1];
+			if ($search == $huTitle && $year == $relYear)
+				return getfilmkatInfo($fkatID);
+			}
+		}
+	} else // csak egy találat, vagy semmi
+	if (strpos($page, "Nincs ilyen film")>0) {
+		return FALSE;
+	} else return(getfilmkatInfo($page));
+}
 
 ?>
