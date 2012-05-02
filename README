@@ -33,3 +33,7 @@ getReleaseDate($movieID, $lang="")
 getCertification($movieID, $lang="")
 
 getAllInfos($movieID,  $lang)
+  It get all movies information from:
+    * themoviedb.org
+    * imdb.com
+    * filmkatalogus.hu
